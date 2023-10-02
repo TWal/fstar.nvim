@@ -1,22 +1,31 @@
 local status = require("status")
 local M = {}
 
+local status_displayers = {}
+
+local uri_to_bufnr = function(uri)
+    return vim.fn.bufadd(vim.uri_to_fname(uri))
+end
+
 local setup_lsp = function (fstar_lsp_path, namespace_id)
-    local status_displayer = status.StatusDisplayer:new(namespace_id, 0)
+    local my_bufnr = vim.api.nvim_get_current_buf()
+    status_displayers[my_bufnr] = status.StatusDisplayer:new(namespace_id, my_bufnr)
     vim.lsp.start({
         cmd = { fstar_lsp_path },
         root_dir = vim.fn.getcwd(), -- Use PWD as project root dir.
         handlers = {
             ["fstar-lsp/clearStatus"] = vim.lsp.with(
                 function(err, result, ctx, config)
-                    status_displayer:clear()
+                    local bufnr = uri_to_bufnr(result.uri)
+                    status_displayers[bufnr]:clear()
                     return { success = true }
                 end,
             {}),
 
             ["fstar-lsp/setStatus"] = vim.lsp.with(
                 function(err, result, ctx, config)
-                    status_displayer:set_status(result.range.start.line, result.range["end"].line, result.statusType)
+                    local bufnr = uri_to_bufnr(result.uri)
+                    status_displayers[bufnr]:set_status(result.range.start.line, result.range["end"].line, result.statusType)
                     return { success = true }
                 end,
             {}),

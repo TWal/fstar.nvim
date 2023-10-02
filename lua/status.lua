@@ -25,10 +25,10 @@ local hl_group_tbl = {
     Ok = "FullyChecked",
 }
 
-function StatusDisplayer:new(namespace_id, buf_nr)
+function StatusDisplayer:new(namespace_id, bufnr)
     local res = {
         namespace_id = namespace_id,
-        buf_nr = buf_nr,
+        bufnr = bufnr,
         is_waiting = false,
         status_list = {}
     }
@@ -48,9 +48,9 @@ function StatusDisplayer:clear()
         timer:close()
         vim.schedule(function ()
             -- clear all marks
-            for i = 0, vim.api.nvim_buf_line_count(0) do
+            for i = 0, vim.api.nvim_buf_line_count(self.bufnr) do
                 local extmark_id = i+1
-                vim.api.nvim_buf_del_extmark(0, self.namespace_id, extmark_id)
+                vim.api.nvim_buf_del_extmark(self.bufnr, self.namespace_id, extmark_id)
             end
             -- draw the buffered status updates
             for i = 1, #self.status_list do
@@ -80,7 +80,7 @@ function StatusDisplayer:draw_status(status_ind)
         if after_previous_section < start_line then
             for i = after_previous_section, start_line-1 do
                 local extmark_id = i+1
-                vim.api.nvim_buf_set_extmark(0, self.namespace_id, i, 0, {
+                vim.api.nvim_buf_set_extmark(self.bufnr, self.namespace_id, i, 0, {
                     id = extmark_id,
                     line_hl_group = hl_group_tbl[between_sections_status_type]
                 })
@@ -93,9 +93,9 @@ function StatusDisplayer:draw_status(status_ind)
         -- The extmark id cannot be 0, add one to avoid that case
         local extmark_id = i+1
         if status_type == "Failed" then
-            vim.api.nvim_buf_del_extmark(0, self.namespace_id, extmark_id)
+            vim.api.nvim_buf_del_extmark(self.bufnr, self.namespace_id, extmark_id)
         else
-            vim.api.nvim_buf_set_extmark(0, self.namespace_id, i, 0, {
+            vim.api.nvim_buf_set_extmark(self.bufnr, self.namespace_id, i, 0, {
                 id = extmark_id,
                 line_hl_group = hl_group_tbl[status_type]
             })
