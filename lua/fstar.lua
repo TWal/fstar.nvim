@@ -73,8 +73,15 @@ M.setup = function(cfg)
         bg = cfg.colors.scheduled,
     })
 
-    vim.api.nvim_create_autocmd({"BufEnter"}, {
-        pattern = {"*.fst", "*.fsti"},
+    vim.filetype.add({
+        extension = {
+            fst = "fstar",
+            fsti = "fstar",
+        }
+    })
+
+    vim.api.nvim_create_autocmd({"FileType"}, {
+        pattern = {"fstar"},
         callback = function()
             setup_lsp(cfg.fstar_lsp_path, namespace_id)
             setup_fstar_command()
