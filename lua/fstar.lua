@@ -41,18 +41,30 @@ local fstar_verify_all = function()
     end
 end
 
+local fstar_cancel_all = function()
+    for _, client in ipairs(vim.lsp.get_active_clients({bufnr = 0})) do
+        client.notify("fstar-lsp/cancelAll", {
+            textDocument = vim.lsp.util.make_text_document_params()
+        })
+    end
+end
+
+
 local setup_fstar_command = function ()
     vim.api.nvim_buf_create_user_command(0, 'FStar',
         function(input)
             if input.fargs[1] == "verify_all" then
                 fstar_verify_all()
             end
+            if input.fargs[1] == "cancel_all" then
+                fstar_cancel_all()
+            end
         end,
         {
             desc = "Communicate with F* LSP",
             nargs = 1,
             complete = function(ArgLead, CmdLine, CursorPos)
-                return { "verify_all" }
+                return { "verify_all", "cancel_all" }
             end,
         }
     )
