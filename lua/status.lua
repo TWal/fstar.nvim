@@ -62,6 +62,21 @@ function StatusDisplayer:clear()
     end)
 end
 
+function StatusDisplayer:set_range_to_status(start_line, end_line, status_type)
+    for i = start_line, end_line do
+        -- The extmark id cannot be 0, add one to avoid that case
+        local extmark_id = i+1
+        if status_type == "Failed" then
+            vim.api.nvim_buf_del_extmark(self.bufnr, self.namespace_id, extmark_id)
+        else
+            vim.api.nvim_buf_set_extmark(self.bufnr, self.namespace_id, i, 0, {
+                id = extmark_id,
+                line_hl_group = hl_group_tbl[status_type]
+            })
+        end
+    end
+end
+
 function StatusDisplayer:draw_status(status_ind)
     local start_line = self.status_list[status_ind].start_line
     local end_line = self.status_list[status_ind].end_line
@@ -78,29 +93,12 @@ function StatusDisplayer:draw_status(status_ind)
         -- do not draw between sections if there is nothing between
         -- (this condition can also be false when F* sends InProgress followed by Ok for the same range)
         if after_previous_section < start_line then
-            for i = after_previous_section, start_line-1 do
-                local extmark_id = i+1
-                vim.api.nvim_buf_set_extmark(self.bufnr, self.namespace_id, i, 0, {
-                    id = extmark_id,
-                    line_hl_group = hl_group_tbl[between_sections_status_type]
-                })
-            end
+            self:set_range_to_status(after_previous_section, start_line-1, between_sections_status_type)
         end
     end
 
     -- draw for the current status update
-    for i = start_line, end_line do
-        -- The extmark id cannot be 0, add one to avoid that case
-        local extmark_id = i+1
-        if status_type == "Failed" then
-            vim.api.nvim_buf_del_extmark(self.bufnr, self.namespace_id, extmark_id)
-        else
-            vim.api.nvim_buf_set_extmark(self.bufnr, self.namespace_id, i, 0, {
-                id = extmark_id,
-                line_hl_group = hl_group_tbl[status_type]
-            })
-        end
-    end
+    self:set_range_to_status(start_line, end_line, status_type)
 end
 
 function StatusDisplayer:set_status(start_line, end_line, status_type)
