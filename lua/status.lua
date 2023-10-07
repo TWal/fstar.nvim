@@ -30,7 +30,7 @@ function StatusDisplayer:new(namespace_id, bufnr)
         namespace_id = namespace_id,
         bufnr = bufnr,
         is_waiting = false,
-        status_list = {}
+        status_list = {},
     }
     setmetatable(res, self)
     self.__index = self
@@ -66,7 +66,7 @@ function StatusDisplayer:set_range_to_status(start_line, end_line, status_type)
     for i = start_line, end_line do
         -- The extmark id cannot be 0, add one to avoid that case
         local extmark_id = i+1
-        if status_type == "Failed" then
+        if status_type == "Failed" or status_type == "Canceled" then
             vim.api.nvim_buf_del_extmark(self.bufnr, self.namespace_id, extmark_id)
         else
             vim.api.nvim_buf_set_extmark(self.bufnr, self.namespace_id, i, 0, {
@@ -93,10 +93,22 @@ function StatusDisplayer:draw_status(status_ind)
         -- do not draw between sections if there is nothing between
         -- (this condition can also be false when F* sends InProgress followed by Ok for the same range)
         if after_previous_section < start_line then
-            self:set_range_to_status(after_previous_section, start_line-1, between_sections_status_type)
+            local in_between = {
+                start_line = after_previous_section,
+                end_line = start_line-1,
+                status_type = between_sections_status_type,
+            }
+            self.status_list[status_ind].in_between = in_between
+            self:set_range_to_status(in_between.start_line, in_between.end_line, in_between.status_type)
         end
     end
 
+    if (status_type == "Failed" or status_type == "Canceled") and 1 < status_ind then
+        local in_between = self.status_list[status_ind-1].in_between
+        if in_between ~= nil then
+            self:set_range_to_status(in_between.start_line, in_between.end_line, status_type)
+        end
+    end
     -- draw for the current status update
     self:set_range_to_status(start_line, end_line, status_type)
 end
@@ -106,6 +118,7 @@ function StatusDisplayer:set_status(start_line, end_line, status_type)
         start_line = start_line,
         end_line = end_line,
         status_type = status_type,
+        in_between = nil,
     })
     -- don't draw the status yet if we are shortly after a clear
     if not self.is_waiting then
