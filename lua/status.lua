@@ -21,7 +21,7 @@ local StatusDisplayer = {}
 
 local hl_group_tbl = {
     InProgress = "InProgress",
-    LaxOk = "InProgress", --TODO other color
+    LaxOk = "LaxChecked",
     Ok = "FullyChecked",
 }
 
