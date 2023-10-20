@@ -47,7 +47,9 @@ local for_all_clients = function(callback)
     end
 end
 
-local fstar_verify_all = function()
+M.commands = {}
+
+M.commands.verify_all = function()
     for_all_clients(function (client)
         client.notify("fstar-lsp/verifyAll", {
             textDocument = vim.lsp.util.make_text_document_params()
@@ -55,7 +57,7 @@ local fstar_verify_all = function()
     end)
 end
 
-local fstar_lax_to_position = function()
+M.commands.lax_to_position = function()
     for_all_clients(function (client)
         client.notify("fstar-lsp/laxToPosition", {
             textDocument = vim.lsp.util.make_text_document_params(),
@@ -64,7 +66,7 @@ local fstar_lax_to_position = function()
     end)
 end
 
-local fstar_verify_to_position = function()
+M.commands.verify_to_position = function()
     for_all_clients(function (client)
         client.notify("fstar-lsp/verifyToPosition", {
             textDocument = vim.lsp.util.make_text_document_params(),
@@ -73,7 +75,7 @@ local fstar_verify_to_position = function()
     end)
 end
 
-local fstar_cancel_all = function()
+M.commands.cancel_all = function()
     for_all_clients(function (client)
         client.notify("fstar-lsp/cancelAll", {
             textDocument = vim.lsp.util.make_text_document_params()
@@ -81,7 +83,7 @@ local fstar_cancel_all = function()
     end)
 end
 
-local fstar_reload_dependencies = function()
+M.commands.reload_dependencies = function()
     for_all_clients(function (client)
         client.notify("fstar-lsp/reloadDependencies", {
             textDocument = vim.lsp.util.make_text_document_params()
@@ -89,23 +91,14 @@ local fstar_reload_dependencies = function()
     end)
 end
 
-
 local setup_fstar_command = function ()
-    local commands = {
-        verify_all = fstar_verify_all,
-        lax_to_position = fstar_lax_to_position,
-        verify_to_position = fstar_verify_to_position,
-        cancel_all = fstar_cancel_all,
-        reload_dependencies = fstar_reload_dependencies,
-    }
-
     local command_keys = {}
-    for key,_ in pairs(commands) do
+    for key,_ in pairs(M.commands) do
         table.insert(command_keys, key)
     end
     vim.api.nvim_buf_create_user_command(0, 'FStar',
         function(input)
-            local fun = commands[input.fargs[1]]
+            local fun = M.commands[input.fargs[1]]
             if fun ~= nil then
                 fun()
             end
