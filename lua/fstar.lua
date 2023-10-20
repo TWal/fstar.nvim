@@ -91,6 +91,14 @@ M.commands.reload_dependencies = function()
     end)
 end
 
+M.commands.restart_z3 = function()
+    for_all_clients(function (client)
+        client.notify("fstar-lsp/restartZ3", {
+            textDocument = vim.lsp.util.make_text_document_params()
+        })
+    end)
+end
+
 local setup_fstar_command = function ()
     local command_keys = {}
     for key,_ in pairs(M.commands) do
