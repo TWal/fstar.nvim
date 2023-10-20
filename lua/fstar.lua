@@ -41,73 +41,80 @@ local setup_lsp = function (fstar_lsp_path, namespace_id)
     })
 end
 
-local fstar_verify_all = function()
+local for_all_clients = function(callback)
     for _, client in ipairs(vim.lsp.get_active_clients({bufnr = 0})) do
-        client.notify("fstar-lsp/verifyAll", {
-            textDocument = vim.lsp.util.make_text_document_params()
-        })
+        callback(client)
     end
 end
 
+local fstar_verify_all = function()
+    for_all_clients(function (client)
+        client.notify("fstar-lsp/verifyAll", {
+            textDocument = vim.lsp.util.make_text_document_params()
+        })
+    end)
+end
+
 local fstar_lax_to_position = function()
-    for _, client in ipairs(vim.lsp.get_active_clients({bufnr = 0})) do
+    for_all_clients(function (client)
         client.notify("fstar-lsp/laxToPosition", {
             textDocument = vim.lsp.util.make_text_document_params(),
             position = get_position(),
         })
-    end
+    end)
 end
 
 local fstar_verify_to_position = function()
-    for _, client in ipairs(vim.lsp.get_active_clients({bufnr = 0})) do
+    for_all_clients(function (client)
         client.notify("fstar-lsp/verifyToPosition", {
             textDocument = vim.lsp.util.make_text_document_params(),
             position = get_position(),
         })
-    end
+    end)
 end
 
 local fstar_cancel_all = function()
-    for _, client in ipairs(vim.lsp.get_active_clients({bufnr = 0})) do
+    for_all_clients(function (client)
         client.notify("fstar-lsp/cancelAll", {
             textDocument = vim.lsp.util.make_text_document_params()
         })
-    end
+    end)
 end
 
 local fstar_reload_dependencies = function()
-    for _, client in ipairs(vim.lsp.get_active_clients({bufnr = 0})) do
+    for_all_clients(function (client)
         client.notify("fstar-lsp/reloadDependencies", {
             textDocument = vim.lsp.util.make_text_document_params()
         })
-    end
+    end)
 end
 
 
 local setup_fstar_command = function ()
+    local commands = {
+        verify_all = fstar_verify_all,
+        lax_to_position = fstar_lax_to_position,
+        verify_to_position = fstar_verify_to_position,
+        cancel_all = fstar_cancel_all,
+        reload_dependencies = fstar_reload_dependencies,
+    }
+
+    local command_keys = {}
+    for key,_ in pairs(commands) do
+        table.insert(command_keys, key)
+    end
     vim.api.nvim_buf_create_user_command(0, 'FStar',
         function(input)
-            if input.fargs[1] == "verify_all" then
-                fstar_verify_all()
-            end
-            if input.fargs[1] == "lax_to_position" then
-                fstar_lax_to_position()
-            end
-            if input.fargs[1] == "verify_to_position" then
-                fstar_verify_to_position()
-            end
-            if input.fargs[1] == "cancel_all" then
-                fstar_cancel_all()
-            end
-            if input.fargs[1] == "reload_dependencies" then
-                fstar_reload_dependencies()
+            local fun = commands[input.fargs[1]]
+            if fun ~= nil then
+                fun()
             end
         end,
         {
             desc = "Communicate with F* LSP",
             nargs = 1,
             complete = function(ArgLead, CmdLine, CursorPos)
-                return { "verify_all", "lax_to_position", "verify_to_position", "cancel_all", "reload_dependencies" }
+                return command_keys
             end,
         }
     )
