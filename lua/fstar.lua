@@ -75,6 +75,15 @@ local fstar_cancel_all = function()
     end
 end
 
+local fstar_reload_dependencies = function()
+    for _, client in ipairs(vim.lsp.get_active_clients({bufnr = 0})) do
+        client.notify("fstar-lsp/reloadDependencies", {
+            textDocument = vim.lsp.util.make_text_document_params()
+        })
+    end
+end
+
+
 local setup_fstar_command = function ()
     vim.api.nvim_buf_create_user_command(0, 'FStar',
         function(input)
@@ -90,12 +99,15 @@ local setup_fstar_command = function ()
             if input.fargs[1] == "cancel_all" then
                 fstar_cancel_all()
             end
+            if input.fargs[1] == "reload_dependencies" then
+                fstar_reload_dependencies()
+            end
         end,
         {
             desc = "Communicate with F* LSP",
             nargs = 1,
             complete = function(ArgLead, CmdLine, CursorPos)
-                return { "verify_all", "lax_to_position", "verify_to_position", "cancel_all" }
+                return { "verify_all", "lax_to_position", "verify_to_position", "cancel_all", "reload_dependencies" }
             end,
         }
     )
