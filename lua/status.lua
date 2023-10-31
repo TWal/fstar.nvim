@@ -25,10 +25,11 @@ local hl_group_tbl = {
     Ok = "FullyChecked",
 }
 
-function StatusDisplayer:new(namespace_id, bufnr)
+function StatusDisplayer:new(namespace_id, bufnr, refresh_delay)
     local res = {
         namespace_id = namespace_id,
         bufnr = bufnr,
+        refresh_delay = refresh_delay,
         is_waiting = false,
         status_list = {},
     }
@@ -43,7 +44,7 @@ function StatusDisplayer:clear()
     -- wait 10ms before clearing and drawing next status updates,
     -- to prevent flickering
     local timer = vim.loop.new_timer()
-    timer:start(10, 0, function()
+    timer:start(self.refresh_delay, 0, function()
         timer:stop()
         timer:close()
         vim.schedule(function ()

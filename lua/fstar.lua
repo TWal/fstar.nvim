@@ -15,11 +15,11 @@ local get_position = function()
     }
 end
 
-local setup_lsp = function (fstar_lsp_path, namespace_id)
+local setup_lsp = function (cfg, namespace_id)
     local my_bufnr = vim.api.nvim_get_current_buf()
-    status_displayers[my_bufnr] = status.StatusDisplayer:new(namespace_id, my_bufnr)
+    status_displayers[my_bufnr] = status.StatusDisplayer:new(namespace_id, my_bufnr, cfg.refresh_delay)
     vim.lsp.start({
-        cmd = { fstar_lsp_path },
+        cmd = { cfg.fstar_lsp_path },
         root_dir = vim.fn.getcwd(), -- Use PWD as project root dir.
         handlers = {
             ["fstar-lsp/clearStatus"] = vim.lsp.with(
@@ -149,7 +149,7 @@ M.setup = function(cfg)
     vim.api.nvim_create_autocmd({"FileType"}, {
         pattern = {"fstar"},
         callback = function()
-            setup_lsp(cfg.fstar_lsp_path, namespace_id)
+            setup_lsp(cfg, namespace_id)
             setup_fstar_command()
         end,
     })
