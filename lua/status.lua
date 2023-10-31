@@ -48,10 +48,7 @@ function StatusDisplayer:clear()
         timer:close()
         vim.schedule(function ()
             -- clear all marks
-            for i = 0, vim.api.nvim_buf_line_count(self.bufnr) do
-                local extmark_id = i+1
-                vim.api.nvim_buf_del_extmark(self.bufnr, self.namespace_id, extmark_id)
-            end
+            vim.api.nvim_buf_clear_namespace(self.bufnr, self.namespace_id, 0, -1)
             -- draw the buffered status updates
             for i = 1, #self.status_list do
                 self:draw_status(i)
