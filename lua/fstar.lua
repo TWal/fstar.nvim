@@ -121,7 +121,19 @@ local setup_fstar_command = function ()
     )
 end
 
+local default_config = {
+    fstar_lsp_path = "fstar-lsp",
+    colors = {
+        fully_checked = "#483D8B",
+        lax_checked = "#483D00";
+        in_progress = "#BA55D3",
+        scheduled = "#5C3566",
+    },
+    refresh_delay = 50,
+}
+
 M.setup = function(cfg)
+    cfg = vim.tbl_deep_extend("force", default_config, cfg)
     local namespace_id = vim.api.nvim_create_namespace("fstar.nvim")
     vim.api.nvim_set_hl_ns(namespace_id)
 
